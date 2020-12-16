@@ -2,6 +2,7 @@ package poloniex
 
 import (
 	"encoding/json"
+	"github.com/pkg/errors"
 	"strconv"
 	"strings"
 	"sync"
@@ -182,31 +183,31 @@ func (ws *WSClient) wsHandler() error {
 
 		var imsg []interface{}
 		err = json.Unmarshal(msg, &imsg)
-		if err != nil || len(imsg) < 3 {
-			continue
+		if err != nil {
+			return errors.Wrap(err, "wsHandler err")
 		}
 
 		arg, ok := imsg[0].(float64)
 		if !ok {
-			continue
+			return errors.New("wsHandler err: Expected element 0 to be a float")
 		}
 
 		chid := int(arg)
 		args, ok := imsg[2].([]interface{})
 		if !ok {
-			continue
+			return errors.New("wsHandler err: Expected element 2 to be an interface ?")
 		}
 
 		var wsupdate interface{}
 		if chid == TICKER {
 			wsupdate, err = convertArgsToTicker(args)
 			if err != nil {
-				continue
+				return errors.Wrap(err, "wsHandler err")
 			}
 		} else if intInSlice(chid, marketChannels) {
 			wsupdate, err = convertArgsToMarketUpdate(args)
 			if err != nil {
-				continue
+				return errors.Wrap(err, "wsHandler err")
 			}
 		} else {
 			continue

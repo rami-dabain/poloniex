@@ -186,6 +186,9 @@ func (ws *WSClient) wsHandler() error {
 		if err != nil {
 			return errors.Wrap(err, "wsHandler err")
 		}
+		if len(imsg) < 3 {
+			return errors.New("Not enough elements in response")
+		}
 
 		arg, ok := imsg[0].(float64)
 		if !ok {
